@@ -71,6 +71,8 @@ pub enum Network {
     Bitcoin,
     /// Bitcoin's testnet network.
     Testnet,
+    /// Bitcoin's exparimental testnet4 network.
+    Testnet4,
     /// Bitcoin's signet network.
     Signet,
     /// Bitcoin's regtest network.
@@ -89,7 +91,9 @@ impl Network {
     /// assert_eq!(Ok(Network::Bitcoin), Network::try_from(Magic::from_bytes([0xF9, 0xBE, 0xB4, 0xD9])));
     /// assert_eq!(None, Network::from_magic(Magic::from_bytes([0xFF, 0xFF, 0xFF, 0xFF])));
     /// ```
-    pub fn from_magic(magic: Magic) -> Option<Network> { Network::try_from(magic).ok() }
+    pub fn from_magic(magic: Magic) -> Option<Network> {
+        Network::try_from(magic).ok()
+    }
 
     /// Return the network magic bytes, which should be encoded little-endian
     /// at the start of every message
@@ -102,7 +106,9 @@ impl Network {
     /// let network = Network::Bitcoin;
     /// assert_eq!(network.magic(), Magic::from_bytes([0xF9, 0xBE, 0xB4, 0xD9]));
     /// ```
-    pub fn magic(self) -> Magic { Magic::from(self) }
+    pub fn magic(self) -> Magic {
+        Magic::from(self)
+    }
 
     /// Converts a `Network` to its equivalent `bitcoind -chain` argument name.
     ///
@@ -117,6 +123,7 @@ impl Network {
         match self {
             Network::Bitcoin => "main",
             Network::Testnet => "test",
+            Network::Testnet4 => "testnet4",
             Network::Signet => "signet",
             Network::Regtest => "regtest",
         }
@@ -137,6 +144,7 @@ impl Network {
         let network = match core_arg {
             "main" => Bitcoin,
             "test" => Testnet,
+            "testnet4" => Testnet4,
             "signet" => Signet,
             "regtest" => Regtest,
             _ => return Err(ParseNetworkError(core_arg.to_owned())),
@@ -155,7 +163,9 @@ impl Network {
     /// let network = Network::Bitcoin;
     /// assert_eq!(network.chain_hash(), ChainHash::BITCOIN);
     /// ```
-    pub fn chain_hash(self) -> ChainHash { ChainHash::using_genesis_block(self) }
+    pub fn chain_hash(self) -> ChainHash {
+        ChainHash::using_genesis_block(self)
+    }
 
     /// Creates a `Network` from the chain hash (genesis block hash).
     ///
@@ -194,6 +204,7 @@ impl FromStr for Network {
         let network = match s {
             "bitcoin" => Bitcoin,
             "testnet" => Testnet,
+            "testnet4" => Testnet4,
             "signet" => Signet,
             "regtest" => Regtest,
             _ => return Err(ParseNetworkError(s.to_owned())),
@@ -209,6 +220,7 @@ impl fmt::Display for Network {
         let s = match *self {
             Bitcoin => "bitcoin",
             Testnet => "testnet",
+            Testnet4 => "testnet4",
             Signet => "signet",
             Regtest => "regtest",
         };
@@ -236,6 +248,7 @@ impl TryFrom<ChainHash> for Network {
             // Note: any new network entries must be matched against here.
             ChainHash::BITCOIN => Ok(Network::Bitcoin),
             ChainHash::TESTNET => Ok(Network::Testnet),
+            ChainHash::TESTNET4 => Ok(Network::Testnet4),
             ChainHash::SIGNET => Ok(Network::Signet),
             ChainHash::REGTEST => Ok(Network::Regtest),
             _ => Err(UnknownChainHash(chain_hash)),
@@ -252,16 +265,22 @@ impl Magic {
     pub const BITCOIN: Self = Self([0xF9, 0xBE, 0xB4, 0xD9]);
     /// Bitcoin testnet network magic bytes.
     pub const TESTNET: Self = Self([0x0B, 0x11, 0x09, 0x07]);
+    /// Bitcoin testnet4 network magic bytes.
+    pub const TESTNET4: Self = Self([0x1C, 0x16, 0x3F, 0x28]);
     /// Bitcoin signet network magic bytes.
     pub const SIGNET: Self = Self([0x0A, 0x03, 0xCF, 0x40]);
     /// Bitcoin regtest network magic bytes.
     pub const REGTEST: Self = Self([0xFA, 0xBF, 0xB5, 0xDA]);
 
     /// Create network magic from bytes.
-    pub fn from_bytes(bytes: [u8; 4]) -> Magic { Magic(bytes) }
+    pub fn from_bytes(bytes: [u8; 4]) -> Magic {
+        Magic(bytes)
+    }
 
     /// Get network magic bytes.
-    pub fn to_bytes(self) -> [u8; 4] { self.0 }
+    pub fn to_bytes(self) -> [u8; 4] {
+        self.0
+    }
 }
 
 /// An error in parsing magic bytes.
@@ -290,6 +309,7 @@ impl From<Network> for Magic {
             // Note: new network entries must explicitly be matched in `try_from` below.
             Network::Bitcoin => Magic::BITCOIN,
             Network::Testnet => Magic::TESTNET,
+            Network::Testnet4 => Magic::TESTNET4,
             Network::Signet => Magic::SIGNET,
             Network::Regtest => Magic::REGTEST,
         }
@@ -308,6 +328,7 @@ impl TryFrom<Magic> for Network {
             // Note: any new network entries must be matched against here.
             Magic::BITCOIN => Ok(Network::Bitcoin),
             Magic::TESTNET => Ok(Network::Testnet),
+            Magic::TESTNET4 => Ok(Network::Testnet4),
             Magic::SIGNET => Ok(Network::Signet),
             Magic::REGTEST => Ok(Network::Regtest),
             _ => Err(UnknownMagic(magic)),
@@ -350,35 +371,51 @@ impl Decodable for Magic {
 }
 
 impl AsRef<[u8]> for Magic {
-    fn as_ref(&self) -> &[u8] { &self.0 }
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl AsRef<[u8; 4]> for Magic {
-    fn as_ref(&self) -> &[u8; 4] { &self.0 }
+    fn as_ref(&self) -> &[u8; 4] {
+        &self.0
+    }
 }
 
 impl AsMut<[u8]> for Magic {
-    fn as_mut(&mut self) -> &mut [u8] { &mut self.0 }
+    fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
 }
 
 impl AsMut<[u8; 4]> for Magic {
-    fn as_mut(&mut self) -> &mut [u8; 4] { &mut self.0 }
+    fn as_mut(&mut self) -> &mut [u8; 4] {
+        &mut self.0
+    }
 }
 
 impl Borrow<[u8]> for Magic {
-    fn borrow(&self) -> &[u8] { &self.0 }
+    fn borrow(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl Borrow<[u8; 4]> for Magic {
-    fn borrow(&self) -> &[u8; 4] { &self.0 }
+    fn borrow(&self) -> &[u8; 4] {
+        &self.0
+    }
 }
 
 impl BorrowMut<[u8]> for Magic {
-    fn borrow_mut(&mut self) -> &mut [u8] { &mut self.0 }
+    fn borrow_mut(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
 }
 
 impl BorrowMut<[u8; 4]> for Magic {
-    fn borrow_mut(&mut self) -> &mut [u8; 4] { &mut self.0 }
+    fn borrow_mut(&mut self) -> &mut [u8; 4] {
+        &mut self.0
+    }
 }
 
 impl fmt::Display for ParseMagicError {
@@ -450,18 +487,26 @@ impl ServiceFlags {
     }
 
     /// Check whether [ServiceFlags] are included in this one.
-    pub fn has(self, flags: ServiceFlags) -> bool { (self.0 | flags.0) == self.0 }
+    pub fn has(self, flags: ServiceFlags) -> bool {
+        (self.0 | flags.0) == self.0
+    }
 
     /// Gets the integer representation of this [`ServiceFlags`].
-    pub fn to_u64(self) -> u64 { self.0 }
+    pub fn to_u64(self) -> u64 {
+        self.0
+    }
 }
 
 impl fmt::LowerHex for ServiceFlags {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::LowerHex::fmt(&self.0, f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::LowerHex::fmt(&self.0, f)
+    }
 }
 
 impl fmt::UpperHex for ServiceFlags {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { fmt::UpperHex::fmt(&self.0, f) }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::UpperHex::fmt(&self.0, f)
+    }
 }
 
 impl fmt::Display for ServiceFlags {
@@ -502,31 +547,43 @@ impl fmt::Display for ServiceFlags {
 }
 
 impl From<u64> for ServiceFlags {
-    fn from(f: u64) -> Self { ServiceFlags(f) }
+    fn from(f: u64) -> Self {
+        ServiceFlags(f)
+    }
 }
 
 impl From<ServiceFlags> for u64 {
-    fn from(flags: ServiceFlags) -> Self { flags.0 }
+    fn from(flags: ServiceFlags) -> Self {
+        flags.0
+    }
 }
 
 impl ops::BitOr for ServiceFlags {
     type Output = Self;
 
-    fn bitor(mut self, rhs: Self) -> Self { self.add(rhs) }
+    fn bitor(mut self, rhs: Self) -> Self {
+        self.add(rhs)
+    }
 }
 
 impl ops::BitOrAssign for ServiceFlags {
-    fn bitor_assign(&mut self, rhs: Self) { self.add(rhs); }
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.add(rhs);
+    }
 }
 
 impl ops::BitXor for ServiceFlags {
     type Output = Self;
 
-    fn bitxor(mut self, rhs: Self) -> Self { self.remove(rhs) }
+    fn bitxor(mut self, rhs: Self) -> Self {
+        self.remove(rhs)
+    }
 }
 
 impl ops::BitXorAssign for ServiceFlags {
-    fn bitxor_assign(&mut self, rhs: Self) { self.remove(rhs); }
+    fn bitxor_assign(&mut self, rhs: Self) {
+        self.remove(rhs);
+    }
 }
 
 impl Encodable for ServiceFlags {
